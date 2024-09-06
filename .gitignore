@@ -171,3 +171,4 @@ scratch*
 *secrets*.json
 your-first-project
 typesense_server/typesense-data/
+.env
