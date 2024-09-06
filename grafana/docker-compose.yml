@@ -1,0 +1,19 @@
+version: '3'
+services:
+  grafana:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - grafana-network
+
+volumes:
+  grafana-storage:
+
+networks:
+  grafana-network:
+    external: true
