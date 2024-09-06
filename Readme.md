@@ -1,6 +1,6 @@
 # RAG Q&A System with GitHub Discussions
 
-![Project Overview](/img/project_overview.png)
+## Project Overview
 
 This project implements a Retrieval-Augmented Generation (RAG) Q&A system using GitHub Discussions as the knowledge base. It leverages several technologies to create an efficient and monitored system for answering questions based on GitHub content.
 
@@ -25,7 +25,6 @@ This project aims to create a RAG Q&A system that:
 
 ## Technologies Used
 
-![Tech Stack](/img/tech_stack.png)
 
 - **Mage AI**: An open-source data pipeline tool used for ingesting GitHub Discussions data into Typesense.
 - **Typesense**: A fast, typo-tolerant search engine used as our vector database for storing and querying embeddings.
@@ -48,14 +47,17 @@ This project aims to create a RAG Q&A system that:
    cd rag-qa-system
    ```
 
-2. Create a `.env` file in the project root (see [Configuration](#configuration) section).
+2. Create a `.env` file in each service folder (see [Configuration](#configuration) section).
 
-3. Build and start the containers:
+3. Build and start the containers for each service:
    ```
-   docker-compose up -d
+   cd mage-ai && docker-compose up -d
+   cd ../typesense && docker-compose up -d
+   cd ../grafana && docker-compose up -d
+   cd ../postgres && docker-compose up -d
    ```
 
-This command will start the following services:
+This will start the following services:
 - Mage AI: http://localhost:6789
 - Typesense: http://localhost:8108
 - Grafana: http://localhost:3000
@@ -89,7 +91,7 @@ Replace the placeholder values with your actual API keys and credentials.
 
 3. Monitor the system's performance and user interactions through Grafana at http://localhost:3000.
 
-   ![Grafana Dashboard](/img/grafana_dashboard.png)
+   ![Grafana Dashboard](/img/grafana_logs.png)
 
 ## Running the RAG Q&A System
 
@@ -136,11 +138,9 @@ As you use the RAG Q&A system, performance metrics and user interactions are log
 ## Monitoring
 
 Access Grafana at http://localhost:3000 to view dashboards for:
-- Query performance
 - User interaction statistics
-- System resource usage
 
-Custom dashboards can be created to track specific metrics relevant to your use case.
+Custom dashboards can be created to track specific metrics.
 
 For more detailed information on each component, refer to their respective documentation:
 - [Mage AI Documentation](https://docs.mage.ai/)
