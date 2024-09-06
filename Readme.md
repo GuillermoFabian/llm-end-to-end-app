@@ -61,7 +61,7 @@ This will start the following services:
 - Mage AI: http://localhost:6789
 - Typesense: http://localhost:8108
 - Grafana: http://localhost:3000
-- PostgreSQL: localhost:5432
+- PostgreSQL: localhost:5432 (backend no interface)
 
 ## Configuration
 
