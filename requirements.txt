@@ -1,0 +1,7 @@
+mage-ai==0.9.0
+typesense==0.15.1
+psycopg2-binary==2.9.5
+grafana-api==1.0.3
+streamlit==1.22.0
+langchain==0.0.184
+openai==0.27.8

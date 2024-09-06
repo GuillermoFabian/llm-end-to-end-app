@@ -11,7 +11,8 @@ This project implements a Retrieval-Augmented Generation (RAG) Q&A system using 
 3. [Installation](#installation)
 4. [Configuration](#configuration)
 5. [Usage](#usage)
-6. [Monitoring](#monitoring)
+6. [Running the RAG Q&A System](#running-the-rag-qa-system)
+7. [Monitoring](#monitoring)
 
 ## Project Scope
 
@@ -89,6 +90,48 @@ Replace the placeholder values with your actual API keys and credentials.
 3. Monitor the system's performance and user interactions through Grafana at http://localhost:3000.
 
    ![Grafana Dashboard](/img/grafana_dashboard.png)
+
+## Running the RAG Q&A System
+
+The main component of this project is the `rag_flow.py` script, which starts a Streamlit app allowing users to interact with the RAG Q&A system.
+
+To run the Streamlit app:
+
+1. Ensure all services are running (Mage AI, Typesense, PostgreSQL, and Grafana).
+
+2. Navigate to the project directory:
+   ```
+   cd rag-qa-system
+   ```
+
+3. Install the required Python packages if you haven't already:
+   ```
+   pip install -r requirements.txt
+   ```
+
+4. Run the Streamlit app:
+   ```
+   streamlit run rag_flow.py
+   ```
+
+5. Open your web browser and go to `http://localhost:8501` to access the RAG Q&A interface.
+
+![Streamlit RAG Q&A Interface](/img/streamlit_rag_qa.png)
+
+### Using the RAG Q&A Interface
+
+1. Enter your question in the text input field.
+2. Click the "Ask" button or press Enter to submit your question.
+3. The system will process your question, retrieve relevant information from the GitHub Discussions, and generate an answer.
+4. The answer will be displayed along with relevant source information.
+
+![Streamlit Answer Display](/img/streamlit_answer.png)
+
+You can ask multiple questions and the chat history will be displayed in the interface.
+
+### Performance and Monitoring
+
+As you use the RAG Q&A system, performance metrics and user interactions are logged and can be monitored through the Grafana dashboard.
 
 ## Monitoring
 

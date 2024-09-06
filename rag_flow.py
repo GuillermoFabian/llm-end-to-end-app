@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
 import tiktoken
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
 
