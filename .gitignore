@@ -171,4 +171,7 @@ scratch*
 *secrets*.json
 your-first-project
 
-.env 
+.env
+
+# Ignore virtual environment directories
+venv/

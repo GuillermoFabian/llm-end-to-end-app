@@ -181,7 +181,7 @@ Each of the metrics offers a unique perspective on the quality of the retrieved 
 
 Precision measures the accuracy of the retrieved documents. It is the ratio of the number of relevant documents retrieved to the total number of documents retrieved. It's defined as:
 
-\[ \text{Precision} = \frac{\text{Number of Relevant Documents Retrieved}}{\text{Total Number of Documents Retrieved}} \]
+Precision = (Number of Relevant Documents Retrieved) / (Total Number of Documents Retrieved)
 
 This means that precision evaluates how many of the documents retrieved by the system are actually relevant to the user's query. For example, if the retriever retrieves 10 documents and 7 of them are relevant, the precision would be 0.7 or 70%.
 
@@ -193,7 +193,7 @@ Precision is especially important when presenting irrelevant information can hav
 
 Recall measures the comprehensiveness of the retrieved documents. It is the ratio of the number of relevant documents retrieved to the total number of relevant documents in the database for the given query. It's defined as:
 
-\[ \text{Recall} = \frac{\text{Number of Relevant Documents Retrieved}}{\text{Total Number of Relevant Documents in the Database}} \]
+Recall = (Number of Relevant Documents Retrieved) / (Total Number of Relevant Documents in the Database)
 
 This means that recall evaluates how many of the relevant documents that exist in the database were successfully retrieved by the system.
 
@@ -205,7 +205,7 @@ Recall is critical in situations where missing out on relevant information can b
 
 Balancing precision and recall is often necessary, as improving one can sometimes reduce the other. The goal is to find an optimal balance that suits the specific needs of the application. This balance is sometimes quantified using the F1 score, which is the harmonic mean of precision and recall:
 
-\[ \text{F1 Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} \]
+F1 Score = 2 (Precision Recall) / (Precision + Recall)
 
 ### Evaluation Process
 
