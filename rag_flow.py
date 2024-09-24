@@ -150,8 +150,23 @@ def evaluate_rag_approaches(query, relevant_docs):
 
     return best_approach
 
+def rewrite_query(query, llm):
+    # Example implementation of query rewriting using the same model
+    prompt = f"Rewrite the following query for better clarity and context: {query}"
+    rewritten_query = llm.invoke({"question": prompt})
+    return rewritten_query
+
+def process_query(query, llm):
+    rewritten_query = rewrite_query(query, llm)
+    logger.info(f"Original Query: {query}")
+    logger.info(f"Rewritten Query: {rewritten_query}")
+    return rewritten_query
+
 def main():
     st.title("Search and Q&A Chatbot Github Discussions about Crew AI, Spacy, AllenAI, and more")
+
+    # Set up Langchain components
+    llm = OpenAI(temperature=0, max_tokens=256)
 
     # User input
     user_query = st.text_input("Enter your question:")
@@ -159,11 +174,14 @@ def main():
     if user_query:
         logger.info(f"User query: {user_query}")
 
+        # Rewrite the user query
+        rewritten_query = process_query(user_query, llm)
+
         # Perform RAG evaluation
         relevant_docs = []  # This should be a list of relevant document IDs for the query
         try:
-            best_rag_approach = evaluate_rag_approaches(user_query, relevant_docs)
-            search_results, precision, recall, f1_score = best_rag_approach(user_query, relevant_docs)
+            best_rag_approach = evaluate_rag_approaches(rewritten_query, relevant_docs)
+            search_results, precision, recall, f1_score = best_rag_approach(rewritten_query, relevant_docs)
             logger.info(f"Number of search results: {len(search_results['hits'])}")
         except ValueError as e:
             st.error(f"Error: {e}")
@@ -176,7 +194,6 @@ def main():
         logger.info(f"Context preview:\n{combined_context[:1000]}...")  # Log the first 1000 characters of the context
 
         # Set up Langchain components
-        llm = OpenAI(temperature=0, max_tokens=256)
         prompt = PromptTemplate(
             input_variables=["question", "context"],
             template="""You are a helpful AI assistant specializing in information about Crew AI. 
