@@ -114,9 +114,13 @@ Replace the placeholder values with your actual API keys and credentials.
 
 1. Access the Mage AI interface at http://localhost:6789 to set up and run the data ingestion pipeline.
 
+![Mage AI Dashboard](img/mage_ai_dashboard.png)
+
 2. Once the data is ingested, you can use the provided Python scripts to query the RAG system.
 
 3. Monitor the system's performance and user interactions through Grafana at http://localhost:3000.
+
+![Grafana Logs](img/grafana_logs.png)
 
 ## Running the RAG Q&A System
 
@@ -149,6 +153,10 @@ To run the Streamlit app:
 2. Click the "Ask" button or press Enter to submit your question.
 3. The system will process your question, retrieve relevant information from the GitHub Discussions, and generate an answer.
 4. The answer will be displayed along with relevant source information.
+
+![Streamlit Interface 1](img/streamlit_rag_qa.png)
+![Streamlit Interface 2](img/streamlit_2.png)
+![Streamlit Interface 3](img/streamlit_answer.png)
 
 You can ask multiple questions and the chat history will be displayed in the interface.
 
