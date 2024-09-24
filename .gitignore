@@ -170,6 +170,5 @@ scratch*
 /mage_data*
 *secrets*.json
 your-first-project
-typesense_server/typesense-data/
-.env
-.env
+
+.env 

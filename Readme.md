@@ -2,17 +2,19 @@
 
 ## Project Overview
 
-This project implements a Retrieval-Augmented Generation (RAG) Q&A system using GitHub Discussions as the knowledge base. It leverages several technologies to create an efficient and monitored system for answering questions based on GitHub content.
+This project implements a Retrieval-Augmented Generation (RAG) Q&A system using GitHub Discussions as the knowledge base. RAG combines the power of large language models with a retrieval system to generate more accurate and contextually relevant answers.
 
 ## Table of Contents
 
 1. [Project Scope](#project-scope)
-2. [Technologies Used](#technologies-used)
+2. [Architecture and Technology Stack](#architecture-and-technology-stack)
 3. [Installation](#installation)
 4. [Configuration](#configuration)
 5. [Usage](#usage)
 6. [Running the RAG Q&A System](#running-the-rag-qa-system)
 7. [Monitoring](#monitoring)
+8. [Retrieval Evaluation](#retrieval-evaluation)
+9. [RAG Evaluation](#rag-evaluation)
 
 ## Project Scope
 
@@ -23,14 +25,42 @@ This project aims to create a RAG Q&A system that:
 3. Monitors the system's performance and user interactions using Grafana.
 4. Stores metadata and logs in a PostgreSQL database.
 
-## Technologies Used
+## Architecture and Technology Stack
 
+Our RAG Q&A system is built on a modular architecture that leverages several key technologies:
 
-- **Mage AI**: An open-source data pipeline tool used for ingesting GitHub Discussions data into Typesense.
-- **Typesense**: A fast, typo-tolerant search engine used as our vector database for storing and querying embeddings.
-- **Grafana**: An open-source analytics and monitoring platform used to visualize system performance and user interactions.
-- **PostgreSQL**: A powerful, open-source relational database used for storing metadata and logs.
-- **Docker**: Used for containerizing and managing our application components.
+1. **Data Ingestion and Processing**
+   - **Mage AI**: An open-source data pipeline tool used for ingesting and processing GitHub Discussions data. It handles the extraction of discussions, preprocessing of text, and generation of embeddings.
+
+2. **Vector Database**
+   - **Typesense**: A fast, typo-tolerant search engine used as our vector database. It stores the processed discussion data and their corresponding embeddings, allowing for efficient similarity searches during the retrieval phase.
+
+3. **RAG Implementation**
+   - **Python**: The core RAG logic is implemented in Python, using libraries such as `langchain` for the retrieval process and integration with language models.
+   - **OpenAI API**: Used for generating embeddings and powering the language model for answer generation.
+
+4. **User Interface**
+   - **Streamlit**: Provides a simple, interactive web interface for users to input questions and receive answers.
+
+5. **Monitoring and Logging**
+   - **Grafana**: An open-source analytics and monitoring platform. It's used to visualize system performance metrics, user interaction statistics, and other relevant data.
+   - **PostgreSQL**: A powerful, open-source relational database used for storing metadata, logs, and performance metrics.
+
+6. **Containerization and Orchestration**
+   - **Docker**: Used for containerizing individual components of the system, ensuring consistency across different environments.
+   - **Docker Compose**: Orchestrates the multi-container application, managing the interactions between different services.
+
+### System Flow
+
+1. GitHub Discussions data is ingested and processed by Mage AI pipelines.
+2. Processed data and embeddings are stored in Typesense.
+3. When a user asks a question, the system retrieves relevant documents from Typesense.
+4. Retrieved documents are combined with the user's question and sent to the language model.
+5. The language model generates an answer based on the retrieved context and the question.
+6. The answer is presented to the user through the Streamlit interface.
+7. Throughout this process, logs and metrics are stored in PostgreSQL and visualized in Grafana.
+
+This architecture ensures scalability, maintainability, and efficient performance of the RAG Q&A system.
 
 ## Installation
 
@@ -42,7 +72,7 @@ This project aims to create a RAG Q&A system that:
 ### Setup
 
 1. Clone the repository:
-   ```
+   ```bash
    git clone https://github.com/yourusername/rag-qa-system.git
    cd rag-qa-system
    ```
@@ -50,7 +80,7 @@ This project aims to create a RAG Q&A system that:
 2. Create a `.env` file in each service folder (see [Configuration](#configuration) section).
 
 3. Build and start the containers for each service:
-   ```
+   ```bash
    cd mage-ai && docker-compose up -d
    cd ../typesense && docker-compose up -d
    cd ../grafana && docker-compose up -d
@@ -67,7 +97,7 @@ This will start the following services:
 
 Create a `.env` file in the project root with the following content:
 
-
+```
 OPENAI_API_KEY=your_openai_api_key
 TYPESENSE_API_KEY=your_typesense_api_key
 POSTGRES_DB=rag_qa_db
@@ -76,8 +106,7 @@ POSTGRES_PASSWORD=your_secure_password
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 GITHUB_TOKEN=your_github_personal_access_token
-
-
+```
 
 Replace the placeholder values with your actual API keys and credentials.
 
@@ -85,13 +114,9 @@ Replace the placeholder values with your actual API keys and credentials.
 
 1. Access the Mage AI interface at http://localhost:6789 to set up and run the data ingestion pipeline.
 
-   ![Mage AI Dashboard](/img/mage_ai_dashboard.png)
-
 2. Once the data is ingested, you can use the provided Python scripts to query the RAG system.
 
 3. Monitor the system's performance and user interactions through Grafana at http://localhost:3000.
-
-   ![Grafana Dashboard](/img/grafana_logs.png)
 
 ## Running the RAG Q&A System
 
@@ -102,23 +127,21 @@ To run the Streamlit app:
 1. Ensure all services are running (Mage AI, Typesense, PostgreSQL, and Grafana).
 
 2. Navigate to the project directory:
-   ```
+   ```bash
    cd rag-qa-system
    ```
 
 3. Install the required Python packages if you haven't already:
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
 
 4. Run the Streamlit app:
-   ```
+   ```bash
    streamlit run rag_flow.py
    ```
 
 5. Open your web browser and go to `http://localhost:8501` to access the RAG Q&A interface.
-
-![Streamlit RAG Q&A Interface](/img/streamlit_rag_qa.png)
 
 ### Using the RAG Q&A Interface
 
@@ -126,8 +149,6 @@ To run the Streamlit app:
 2. Click the "Ask" button or press Enter to submit your question.
 3. The system will process your question, retrieve relevant information from the GitHub Discussions, and generate an answer.
 4. The answer will be displayed along with relevant source information.
-
-![Streamlit Answer Display](/img/streamlit_answer.png)
 
 You can ask multiple questions and the chat history will be displayed in the interface.
 
@@ -147,3 +168,63 @@ For more detailed information on each component, refer to their respective docum
 - [Typesense Documentation](https://typesense.org/docs/)
 - [Grafana Documentation](https://grafana.com/docs/)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+
+## Retrieval Evaluation
+
+Retrieval evaluations are applied to the retriever component of a RAG system, which typically uses a vector database. These evaluations measure how effectively the retriever identifies and ranks relevant documents in response to a user query. The primary goal of retrieval evaluations is to assess context relevance—how well the retrieved documents align with the user's query. It ensures that the context provided to the generation component is pertinent and accurate.
+
+### Context
+
+Each of the metrics offers a unique perspective on the quality of the retrieved documents and contributes to a comprehensive understanding of context relevance.
+
+### Precision
+
+Precision measures the accuracy of the retrieved documents. It is the ratio of the number of relevant documents retrieved to the total number of documents retrieved. It's defined as:
+
+\[ \text{Precision} = \frac{\text{Number of Relevant Documents Retrieved}}{\text{Total Number of Documents Retrieved}} \]
+
+This means that precision evaluates how many of the documents retrieved by the system are actually relevant to the user's query. For example, if the retriever retrieves 10 documents and 7 of them are relevant, the precision would be 0.7 or 70%.
+
+Precision evaluates, "Out of all the documents that the system retrieved, how many were actually relevant?"
+
+Precision is especially important when presenting irrelevant information can have negative consequences. For example, high precision in a medical information retrieval system is crucial because providing irrelevant medical documents could lead to misinformation and potentially harmful outcomes.
+
+### Recall
+
+Recall measures the comprehensiveness of the retrieved documents. It is the ratio of the number of relevant documents retrieved to the total number of relevant documents in the database for the given query. It's defined as:
+
+\[ \text{Recall} = \frac{\text{Number of Relevant Documents Retrieved}}{\text{Total Number of Relevant Documents in the Database}} \]
+
+This means that recall evaluates how many of the relevant documents that exist in the database were successfully retrieved by the system.
+
+Recall evaluates: "Out of all the relevant documents that exist in the database, how many did the system manage to retrieve?"
+
+Recall is critical in situations where missing out on relevant information can be costly. For instance, in a legal information retrieval system, high recall is essential because failing to retrieve a relevant legal document could lead to incomplete case research and potentially affect the outcome of legal proceedings.
+
+### Balance Between Precision and Recall
+
+Balancing precision and recall is often necessary, as improving one can sometimes reduce the other. The goal is to find an optimal balance that suits the specific needs of the application. This balance is sometimes quantified using the F1 score, which is the harmonic mean of precision and recall:
+
+\[ \text{F1 Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} \]
+
+### Evaluation Process
+
+To ensure the most effective retrieval methods are used, we will:
+
+1. **Evaluate Multiple Retrieval Approaches**: Test various retrieval methods to determine which one provides the most relevant and accurate results.
+2. **Select the Best Approach**: Based on the evaluation, select the most effective retrieval approach to be used in the system.
+3. **Continuous Optimization**: Continuously monitor the performance of the selected retrieval method and make necessary adjustments to maintain optimal performance.
+
+By performing these evaluations, we aim to enhance the accuracy and reliability of the answers generated by the RAG Q&A system, ensuring that users receive the most relevant information from the GitHub Discussions knowledge base.
+
+## RAG Evaluation
+
+For the sake of simplicity, we evaluate two minor approaches to RAG. The project evaluates multiple RAG approaches to select the best one based on precision, recall, and F1 score. The following RAG approaches are currently implemented:
+
+- **RAG Approach 1**: Uses Typesense search with `num_typos=2`.
+- **RAG Approach 2**: Uses Typesense search with `num_typos=1`.
+
+The best RAG approach is automatically selected and used for generating responses.
+
+
+

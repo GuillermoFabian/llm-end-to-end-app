@@ -7,13 +7,12 @@ import streamlit as st
 import logging
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import tiktoken
 
 # Load environment variables from .env file
 load_dotenv()
-
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -57,24 +56,36 @@ class LLMResponse(Base):
 
 Base.metadata.create_all(engine)
 
-def search_typesense(query: str, k: int = 10):
+def calculate_precision_recall_f1(retrieved_docs, relevant_docs):
+    retrieved_set = set(retrieved_docs)
+    relevant_set = set(relevant_docs)
+
+    true_positives = len(retrieved_set & relevant_set)
+    false_positives = len(retrieved_set - relevant_set)
+    false_negatives = len(relevant_set - retrieved_set)
+
+    precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
+    recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+    return precision, recall, f1_score
+
+def search_typesense(query: str, relevant_docs: list, k: int = 10, num_typos: int = 2):
     search_parameters = {
         'q': query,
         'query_by': 'title,bodyText,comments',
-        'num_typos': 2,
+        'num_typos': num_typos,
         'per_page': k
     }
     
     results = typesense_client.collections[collection_name].documents.search(search_parameters)
     
-    logger.info(f"Typesense search results:")
-    for hit in results['hits']:
-        logger.info(f"Title: {hit['document'].get('title', '')}")
-        logger.info(f"Body preview: {hit['document'].get('bodyText', '')[:100]}...")
-        logger.info(f"Number of comments: {len(hit['document'].get('comments', []))}")
-        logger.info("---")
+    retrieved_docs = [hit['document']['id'] for hit in results['hits']]
+    precision, recall, f1_score = calculate_precision_recall_f1(retrieved_docs, relevant_docs)
     
-    return results
+    logger.info(f"Precision: {precision}, Recall: {recall}, F1 Score: {f1_score}")
+    
+    return results, precision, recall, f1_score
 
 def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> int:
     """Returns the number of tokens in a text string."""
@@ -102,17 +113,45 @@ def extract_content_for_llm(search_results, max_tokens=3000):
     combined_context = "\n\n---\n\n".join(contexts)
     return combined_context
 
-def log_response(query, response, rating):
+def log_response(query, response, rating, precision, recall, f1_score):
     session = Session()
     new_response = LLMResponse(query=query, response=response, rating=rating)
     session.add(new_response)
     session.commit()
     session.close()
 
+    logger.info(f"Logged response with Precision: {precision}, Recall: {recall}, F1 Score: {f1_score}")
 
+# Define different RAG approaches
+def rag_approach_1(query, relevant_docs):
+    # Implementation for RAG Approach 1 with num_typos=2
+    return search_typesense(query, relevant_docs, num_typos=2)
+
+def rag_approach_2(query, relevant_docs):
+    # Implementation for RAG Approach 2 with num_typos=1
+    return search_typesense(query, relevant_docs, num_typos=1)
+
+def evaluate_rag_approaches(query, relevant_docs):
+    approaches = [rag_approach_1, rag_approach_2]
+    best_approach = None
+    best_f1_score = 0
+
+    for approach in approaches:
+        try:
+            _, _, _, f1_score = approach(query, relevant_docs)
+            if f1_score > best_f1_score:
+                best_f1_score = f1_score
+                best_approach = approach
+        except Exception as e:
+            logger.error(f"Error evaluating approach {approach.__name__}: {e}")
+
+    if best_approach is None:
+        raise ValueError("No valid RAG approach found")
+
+    return best_approach
 
 def main():
-    st.title("Search and Q&A Chatbot Github Disussions about Crew AI, Spacy, AllenAI, and more")
+    st.title("Search and Q&A Chatbot Github Discussions about Crew AI, Spacy, AllenAI, and more")
 
     # User input
     user_query = st.text_input("Enter your question:")
@@ -120,9 +159,15 @@ def main():
     if user_query:
         logger.info(f"User query: {user_query}")
 
-        # Perform Typesense search
-        search_results = search_typesense(user_query)
-        logger.info(f"Number of search results: {len(search_results['hits'])}")
+        # Perform RAG evaluation
+        relevant_docs = []  # This should be a list of relevant document IDs for the query
+        try:
+            best_rag_approach = evaluate_rag_approaches(user_query, relevant_docs)
+            search_results, precision, recall, f1_score = best_rag_approach(user_query, relevant_docs)
+            logger.info(f"Number of search results: {len(search_results['hits'])}")
+        except ValueError as e:
+            st.error(f"Error: {e}")
+            return
 
         # Extract content for LLM
         combined_context = extract_content_for_llm(search_results, max_tokens=3000)
@@ -133,20 +178,20 @@ def main():
         # Set up Langchain components
         llm = OpenAI(temperature=0, max_tokens=256)
         prompt = PromptTemplate(
-        input_variables=["question", "context"],
-        template="""You are a helpful AI assistant specializing in information about Crew AI. 
-        Use ONLY the following context from discussions to answer the user's question. 
-        The context contains titles, body text, and comments from relevant discussions about Crew AI. 
-        If the context doesn't contain relevant information to answer the question, say that you don't have enough 
-        information from the available discussions.
+            input_variables=["question", "context"],
+            template="""You are a helpful AI assistant specializing in information about Crew AI. 
+            Use ONLY the following context from discussions to answer the user's question. 
+            The context contains titles, body text, and comments from relevant discussions about Crew AI. 
+            If the context doesn't contain relevant information to answer the question, say that you don't have enough 
+            information from the available discussions.
 
-        Context:
-        {context}
+            Context:
+            {context}
 
-        User's Question: {question}
+            User's Question: {question}
 
-        Answer based ONLY on the above context. If the information is not in the context, say you don't have enough information:"""
-    )
+            Answer based ONLY on the above context. If the information is not in the context, say you don't have enough information:"""
+        )
         chain = prompt | llm
 
         # Use the chain with the user's query
@@ -163,7 +208,7 @@ def main():
 
         # Add a submit button for the rating
         if st.button("Submit Rating"):
-            log_response(user_query, response, float(rating))
+            log_response(user_query, response, float(rating), precision, recall, f1_score)
             st.success("Rating submitted successfully!")
 
 if __name__ == "__main__":
